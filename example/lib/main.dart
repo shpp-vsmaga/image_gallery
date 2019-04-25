@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
 
-import 'package:flutter/services.dart';
-import 'package:image_gallery/image_gallery.dart';
-
 void main() => runApp(
     new MyApp());
 
@@ -23,13 +20,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> loadImageList() async {
-    List allImageTemp;
-      allImageTemp = await FlutterGallaryPlugin.getAllImages;
 
-
-    setState(() {
-      this.allImage = allImageTemp;
-    });
   }
 
   @override
