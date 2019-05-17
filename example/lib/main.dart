@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
-void main() => runApp(
-    new MyApp());
+import 'package:flutter/material.dart';
+
+void main() => runApp(new MyApp());
 
 class MyApp extends StatefulWidget {
   @override
@@ -19,9 +19,7 @@ class _MyAppState extends State<MyApp> {
     loadImageList();
   }
 
-  Future<void> loadImageList() async {
-
-  }
+  Future<void> loadImageList() async {}
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +29,7 @@ class _MyAppState extends State<MyApp> {
         appBar: new AppBar(
           title: const Text('Image Gallery'),
         ),
-        body: _buildGrid()
-        ,
+        body: _buildGrid(),
       ),
     );
   }
@@ -47,18 +44,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   List<Container> _buildGridTileList(int count) {
-
     return List<Container>.generate(
-    count,
-    (int index) =>
-    Container(child: Image.file(File(allImage[index].toString()),
-    width: 96.0,
-    height: 96.0,
-    fit: BoxFit.contain,)));
+        count,
+        (int index) => Container(
+                child: Image.file(
+              File(allImage[index].toString()),
+              width: 96.0,
+              height: 96.0,
+              fit: BoxFit.contain,
+            )));
   }
-
-
-
-
-
 }
