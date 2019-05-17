@@ -1,4 +1,4 @@
-group 'adhoc.successive.com.fluttergallaryplugin'
+group 'com.wowanders.flutter_gallery_plugin'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -32,9 +32,7 @@ android {
         disable 'InvalidPackage'
     }
 }
-dependencies {
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'com.karumi:dexter:5.0.0'
-    implementation 'androidx.annotation:annotation:1.0.2'
 
+dependencies {
+    implementation 'com.karumi:dexter:5.0.0'
 }

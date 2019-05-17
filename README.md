@@ -15,7 +15,7 @@ Flutter plugin to showing all the images from the storage in Android and iOS .
 ```dart
  Future<void> loadImageList() async {
     List allImageTemp;
-      allImageTemp = await FlutterGallaryPlugin.getAllImages;
+      allImageTemp = await FlutterGalleryPlugin.getAllImages;
 
 
     setState(() {
