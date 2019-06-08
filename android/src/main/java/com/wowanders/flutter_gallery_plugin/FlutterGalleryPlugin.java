@@ -155,7 +155,7 @@ public class FlutterGalleryPlugin implements MethodCallHandler {
     Cursor c = activity.getContentResolver().query(uri, projection,null, null, null);
     if (c != null) {
       while (c.moveToNext()) {
-        Log.e("", "getAllImageList: " + c.getString(0));
+        Log.d("", "getAllImageList: " + c.getString(0));
         allImageList.add(c.getString(0));
       }
       c.close();
@@ -204,7 +204,7 @@ public class FlutterGalleryPlugin implements MethodCallHandler {
     Cursor cursor = activity.getContentResolver().query(uri, projection, selection, selectionArguments, sortOrder);
     if (cursor != null) {
       while (cursor.moveToNext()) {
-        Log.e("", "getImagesForPeriod: " + cursor.getString(0));
+        Log.d("", "getImagesForPeriod: " + cursor.getString(0));
         imagesList.add(cursor.getString(0));
       }
       cursor.close();
