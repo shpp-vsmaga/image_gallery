@@ -2,56 +2,93 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gallery_plugin/flutter_gallery_plugin.dart';
 
-void main() => runApp(new MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => new _MyAppState();
+  _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  List<Object> allImage = new List();
+  List<Object> _images = List();
 
-  @override
-  void initState() {
-    super.initState();
-    loadImageList();
+  Future<void> loadAllImages() async {
+    final images = await FlutterGalleryPlugin.getAllImages();
+    setState(() {
+      _images = images;
+    });
   }
 
-  Future<void> loadImageList() async {}
+  Future<void> loadTodaysImages() async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    final images = await FlutterGalleryPlugin.getImagesForPeriod(start, now);
+    setState(() {
+      _images = images;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: new Scaffold(
-        appBar: new AppBar(
+      home: Scaffold(
+        appBar: AppBar(
           title: const Text('Image Gallery'),
         ),
-        body: _buildGrid(),
+        body: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                OutlineButton(
+                  onPressed: loadAllImages,
+                  child: Text(
+                    'Load all images',
+                    style: TextStyle(color: Colors.blueAccent),
+                  ),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+                OutlineButton(
+                  onPressed: loadTodaysImages,
+                  child: Text(
+                    'Load todays images',
+                    style: TextStyle(color: Colors.blueAccent),
+                  ),
+                  borderSide: BorderSide(color: Colors.blueAccent),
+                ),
+              ],
+            ),
+            _buildGrid(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildGrid() {
     return GridView.extent(
-        maxCrossAxisExtent: 150.0,
-        // padding: const EdgeInsets.all(4.0),
-        mainAxisSpacing: 4.0,
-        crossAxisSpacing: 4.0,
-        children: _buildGridTileList(allImage.length));
+      shrinkWrap: true,
+      maxCrossAxisExtent: 150.0,
+      mainAxisSpacing: 4.0,
+      crossAxisSpacing: 4.0,
+      children: _buildGridTileList(_images.length),
+    );
   }
 
   List<Container> _buildGridTileList(int count) {
     return List<Container>.generate(
-        count,
-        (int index) => Container(
-                child: Image.file(
-              File(allImage[index].toString()),
+      count,
+      (int index) => Container(
+            child: Image.file(
+              File(_images[index].toString()),
               width: 96.0,
               height: 96.0,
               fit: BoxFit.contain,
-            )));
+            ),
+          ),
+    );
   }
 }
