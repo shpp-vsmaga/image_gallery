@@ -2,66 +2,94 @@ import Flutter
 import UIKit
 import Photos
 
-public class SwiftFlutterGalleryPlugin: NSObject, FlutterPlugin {
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "flutter_gallery_plugin", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterGalleryPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
+public class SwiftFlutterGalleryPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
+    private var eventSink: FlutterEventSink?
 
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if (call.method == "getPlatformVersion") {
-            result("iOS " + UIDevice.current.systemVersion)
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let stream = FlutterEventChannel(name: "flutter_gallery_plugin/paths", binaryMessenger: registrar.messenger())
+        let instance = SwiftFlutterGalleryPlugin()
+        stream.setStreamHandler(instance)
+    }
+
+    public func onListen(withArguments arguments: Any?, eventSink: @escaping FlutterEventSink) -> FlutterError? {
+        self.eventSink = eventSink
+        let args = arguments as! [String: Double]
+        let startDate = Date(timeIntervalSince1970: args["startPeriod"]! / 1000)
+        let endDate = Date(timeIntervalSince1970: args["endPeriod"]! / 1000)
+
+        self.getPhotoPaths(startDate: startDate, endDate: endDate)
+        return nil
+    }
+
+    public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        eventSink = nil
+        return nil
+    }
+
+    public func onPathResolved(path: String) {
+        guard let eventSink = eventSink else {
+            return
         }
-        else if (call.method == "getAllImages") {
 
-            DispatchQueue.main.async {
+        eventSink(path)
+    }
 
-                let imgManager = PHImageManager.default()
-                let requestOptions = PHImageRequestOptions()
-                requestOptions.isSynchronous = true
-                let fetchOptions = PHFetchOptions()
-                fetchOptions.sortDescriptors = [NSSortDescriptor(key:"creationDate", ascending: true)]
+    func getPhotoPaths(startDate: Date, endDate: Date) {
+        DispatchQueue.main.async {
+            let assets = self.fetchPhotos()
+            assets.enumerateObjects({
+                (asset, index, stop) in
+                    if (asset.creationDate! < startDate) {
+                        stop.pointee = false
+                    }
 
-                let fetchResult = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: fetchOptions)
-                var allImages = [String]()
-
-                var totalItration = 0
-                print("fetchResult.count : \(fetchResult.count)")
-
-                var savedLocalIdentifiers = [String]()
-
-                for index in 0..<fetchResult.count
-                {
-                    let asset = fetchResult.object(at: index) as PHAsset
-                    let localIdentifier = asset.localIdentifier
-                    savedLocalIdentifiers.append(localIdentifier)
-
-                    imgManager.requestImage(for: asset, targetSize: CGSize(width: 512.0, height: 512.0), contentMode: PHImageContentMode.aspectFit, options: PHImageRequestOptions(), resultHandler:{(image, info) in
-
-                        if image != nil {
-                            var imageData: Data?
-                            if let cgImage = image!.cgImage, cgImage.renderingIntent == .defaultIntent {
-                                imageData = image!.jpegData(compressionQuality: 0.8)
+                    if (asset.creationDate! >= startDate && asset.creationDate! <= endDate) {
+                        self.getPhotoPath(
+                            asset: asset,
+                            callback: {
+                                (path) in self.onPathResolved(path: path)
                             }
-                            else {
-                                imageData = image!.pngData()
-                            }
-                            let guid = ProcessInfo.processInfo.globallyUniqueString;
-                            let tmpFile = String(format: "image_picker_%@.jpg", guid);
-                            let tmpDirectory = NSTemporaryDirectory();
-                            let tmpPath = (tmpDirectory as NSString).appendingPathComponent(tmpFile);
-                            if(FileManager.default.createFile(atPath: tmpPath, contents: imageData, attributes: [:])) {
-                                allImages.append(tmpPath)
-                            }
-                        }
-                        totalItration += 1
-                        if totalItration == (fetchResult.count) {
-                            result(allImages)
-                        }
-                    })
-                }
+                        )
+                    }
+            })
+        }
+    }
+
+    func fetchPhotos() -> PHFetchResult<PHAsset> {
+        let options = PHFetchOptions()
+        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+        return PHAsset.fetchAssets(with: PHAssetMediaType.image, options: options)
+    }
+
+    func getPhotoPath(asset: PHAsset, callback: @escaping (String)->()) {
+        let imageManager = PHImageManager.default()
+        let options = PHImageRequestOptions()
+
+        options.deliveryMode = PHImageRequestOptionsDeliveryMode.fastFormat
+        options.resizeMode = PHImageRequestOptionsResizeMode.exact
+
+        imageManager.requestImage(
+            for: asset,
+            targetSize: CGSize(width: 512, height: 512),
+            contentMode: PHImageContentMode.aspectFit,
+            options: options,
+            resultHandler: {
+                (image, info) in
+                callback(self.storeThumbnail(image: image))
             }
-        }
+        )
+    }
+
+    func storeThumbnail(image: UIImage?) -> String {
+        let fileName = String(format: "image_picker_%@.jpg", ProcessInfo.processInfo.globallyUniqueString)
+        let filePath = NSString.path(withComponents: [NSTemporaryDirectory(), fileName])
+
+        FileManager.default.createFile(
+            atPath: filePath,
+            contents: image?.jpegData(compressionQuality: CGFloat(0.8)),
+            attributes: [:]
+        )
+
+        return filePath
     }
 }
