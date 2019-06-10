@@ -23,5 +23,4 @@ Flutter plugin to showing all the images from the storage in Android and iOS .
     });
   }
 
-
 ```

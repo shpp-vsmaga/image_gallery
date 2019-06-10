@@ -3,26 +3,21 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 class FlutterGalleryPlugin {
-  static const MethodChannel _channel =
-      const MethodChannel('flutter_gallery_plugin');
-  static const String METHOD_GET_ALL = "getAllImages";
-  static const String METHOD_GET_FOR_PERIOD = "getImagesForPeriod";
-  static const String ARGUMENT_PERIOD_START = "startPeriod";
-  static const String ARGUMENT_PERIOD_END = "endPeriod";
+  static const PATHS_CHANNEL = 'flutter_gallery_plugin/paths';
+  static const ARGUMENT_PERIOD_START = 'startPeriod';
+  static const ARGUMENT_PERIOD_END = 'endPeriod';
 
-  static Future<List<String>> getAllImages() async {
-    List<dynamic> list = await _channel.invokeMethod(METHOD_GET_ALL);
-    return list.map((dynamic item) => item.toString()).toList();
-  }
+  static const _eventChannel = const EventChannel(PATHS_CHANNEL);
 
-  static Future<List<String>> getImagesForPeriod(
-      DateTime startPeriod, DateTime endPeriod) async {
-    Map<String, dynamic> arguments = <String, dynamic>{
+  static Stream<String> getPhotoPathsForPeriod(
+    DateTime startPeriod,
+    DateTime endPeriod,
+  ) {
+    Map<String, int> arguments = <String, int>{
       ARGUMENT_PERIOD_START: startPeriod.millisecondsSinceEpoch,
       ARGUMENT_PERIOD_END: endPeriod.millisecondsSinceEpoch,
     };
-    List<dynamic> list =
-        await _channel.invokeMethod(METHOD_GET_FOR_PERIOD, arguments);
-    return list.map((dynamic item) => item.toString()).toList();
+
+    return _eventChannel.receiveBroadcastStream(arguments).cast<String>();
   }
 }
