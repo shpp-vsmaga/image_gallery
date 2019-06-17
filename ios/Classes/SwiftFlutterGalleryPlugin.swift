@@ -34,12 +34,22 @@ public class SwiftFlutterGalleryPlugin: NSObject, FlutterPlugin, FlutterStreamHa
         eventSink(path)
     }
 
+    public func closeSink() {
+        guard let eventSink = eventSink else {
+            return
+        }
+
+        eventSink(nil)
+        self.eventSink = nil
+    }
+
     func getPhotoPaths(startDate: Date, endDate: Date) {
         DispatchQueue.main.async {
             let assets = self.fetchPhotos()
             assets.enumerateObjects({
                 (asset, index, stop) in
                     if (asset.creationDate! < startDate) {
+                        self.closeSink()
                         stop.pointee = false
                     }
 
