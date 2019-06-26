@@ -66,8 +66,8 @@ public class FlutterGalleryPlugin implements EventChannel.StreamHandler {
       while (cursor.moveToNext()) {
         events.success(cursor.getString(0));
       }
-      events.endOfStream();
       cursor.close();
     }
+    events.endOfStream();
   }
 }
