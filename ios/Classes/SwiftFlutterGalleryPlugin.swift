@@ -40,7 +40,6 @@ public class SwiftFlutterGalleryPlugin: NSObject, FlutterPlugin, FlutterStreamHa
         }
 
         eventSink(nil)
-        self.eventSink = nil
     }
 
     func getPhotoPaths(startDate: Date, endDate: Date) {
@@ -49,7 +48,6 @@ public class SwiftFlutterGalleryPlugin: NSObject, FlutterPlugin, FlutterStreamHa
             assets.enumerateObjects({
                 (asset, index, stop) in
                     if (asset.creationDate! < startDate) {
-                        self.closeSink()
                         stop.pointee = false
                     }
 
@@ -62,6 +60,7 @@ public class SwiftFlutterGalleryPlugin: NSObject, FlutterPlugin, FlutterStreamHa
                         )
                     }
             })
+            self.closeSink()
         }
     }
 
